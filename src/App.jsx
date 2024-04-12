@@ -6,8 +6,8 @@ import HomePage from "./pages/Home";
 // import PostPage, { loader as postLoader } from "./pages/Post";
 import RootLayout from "./pages/Root";
 
-const BlogPage = lazy(() => import("./pages/Blog"));
-const PostPage = lazy(() => import("./pages/Post"));
+// const BlogPage = lazy(() => import("./pages/Blog"));
+// const PostPage = lazy(() => import("./pages/Post"));
 
 const router = createBrowserRouter([
 	{
@@ -23,28 +23,63 @@ const router = createBrowserRouter([
 				children: [
 					{
 						index: true,
-						element: (
-							<Suspense fallback={<p>Loading ....</p>}>
-								<BlogPage />
-							</Suspense>
-						),
-						loader: () =>
-							import("./pages/Blog").then((module) =>
-								module.loader()
-							),
+						async lazy() {
+							const { loader: blogLoader, default: BlogPage } =
+								await import("./pages/Blog");
+							return {
+								loader: blogLoader,
+								Component: () => (
+									<Suspense
+										fallback={<p>Loading blog page...</p>}
+									>
+										<BlogPage />
+									</Suspense>
+								),
+							};
+						},
 					},
+					// {
+					// 	index: true,
+					// 	element: (
+					// 		<Suspense fallback={<p>Loading ....</p>}>
+					// 			<BlogPage />
+					// 		</Suspense>
+					// 	),
+					// 	loader: (meta) =>
+					// 		import("./pages/Blog").then((module) => {
+					//       console.log("meta",module)
+					// 			return module.loader(meta);
+					// 		}),
+					// },
 					{
 						path: ":id",
-						element: (
-							<Suspense fallback={<p>Loading...</p>}>
-								<PostPage />
-							</Suspense>
-						),
-						loader: (meta) =>
-							import("./pages/Post").then((module) =>
-								module.loader(meta)
-							),
+						async lazy() {
+							const { loader: postLoader, default: PostPage } =
+								await import("./pages/Post");
+							return {
+								loader: (meta) => postLoader(meta),
+								Component: () => (
+									<Suspense
+										fallback={<p>Loading blog page...</p>}
+									>
+										<PostPage />
+									</Suspense>
+								),
+							};
+						},
 					},
+					// {
+					// 	path: ":id",
+					// 	element: (
+					// 		<Suspense fallback={<p>Loading...</p>}>
+					// 			<PostPage />
+					// 		</Suspense>
+					// 	),
+					// 	loader: (meta) =>
+					// 		import("./pages/Post").then((module) =>
+					// 			module.loader(meta)
+					// 		),
+					// },
 				],
 			},
 		],
